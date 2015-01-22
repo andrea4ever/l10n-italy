@@ -151,10 +151,26 @@
                         <th></th>
                     </tr>
                     <tr>
-                        <th><strong>TOTALE DA VERSARE</strong></th>
+                        <th><strong>TOTALE LIQUIDAZIONE</strong></th>
                         <th colspan="2">
                             <strong>
-                                <span t-esc="(sum(total_debit) + o.previous_debit_vat_amount) - (sum(total_credit) + o.previous_credit_vat_amount)"/>
+                                <span t-field="o.authority_vat_amount_net"/>
+                            </strong>
+                        </th>
+                    </tr>
+                    <tr>
+                        <th><strong>INTERESSI</strong></th>
+                        <th colspan="2">
+                            <strong>
+                                <span t-esc="o.authority_vat_amount - o.authority_vat_amount_net"/>
+                            </strong>
+                        </th>
+                    </tr>
+                    <tr>
+                        <th><strong>TOTALE VERSAMENTO</strong></th>
+                        <th colspan="2">
+                            <strong>
+                                <span t-field="o.authority_vat_amount"/>
                             </strong>
                         </th>
                     </tr>
