@@ -36,6 +36,9 @@ class account_vat_period_end_statement(orm.Model):
                                       context):
         res = {}
         for i in ids:
+            res[i] = {
+                'authority_vat_amount': 0.0,
+                'authority_vat_amount_net': 0.0}
             statement = self.browse(cr, uid, i)
             debit_vat_amount = 0.0
             credit_vat_amount = 0.0
@@ -52,10 +55,11 @@ class account_vat_period_end_statement(orm.Model):
             authority_amount = (
                 debit_vat_amount - credit_vat_amount - generic_vat_amount -
                 statement.previous_credit_vat_amount +
-                statement.previous_debit_vat_amount) * (
-                    company.quarterly_vat and (
-                        (100 + company.amount_interest) / 100.00) or 1.0)
-            res[i] = authority_amount
+                statement.previous_debit_vat_amount)
+            res[i]['authority_vat_amount'] = (
+                authority_amount * (company.quarterly_vat and (
+                    (100 + company.amount_interest) / 100.00) or 1.0))
+            res[i]['authority_vat_amount_net'] = authority_amount
         return res
 
     def _compute_payable_vat_amount(self, cr, uid, ids, field_name, arg,
@@ -227,8 +231,11 @@ class account_vat_period_end_statement(orm.Model):
         'authority_partner_id': fields.many2one('res.partner', 'Tax Authority Partner', states={'confirmed': [('readonly', True)], 'paid': [('readonly', True)], 'draft': [('readonly', False)]}),
         'authority_vat_account_id': fields.many2one('account.account', 'Tax Authority VAT Account', required=True, states={'confirmed': [('readonly', True)], 'paid': [('readonly', True)], 'draft': [('readonly', False)]}),
         'authority_vat_amount': fields.function(
-            _compute_authority_vat_amount, method=True,
+            _compute_authority_vat_amount, multi='sums',
             string='Authority VAT Amount'),
+        'authority_vat_amount_net': fields.function(
+            _compute_authority_vat_amount, multi='sums',
+            string='Authority VAT Amount no interests'),
         'payable_vat_amount': fields.function(_compute_payable_vat_amount, method=True, string='Payable VAT Amount'),
         'deductible_vat_amount': fields.function(_compute_deductible_vat_amount, method=True, string='Deductible VAT Amount'),
 

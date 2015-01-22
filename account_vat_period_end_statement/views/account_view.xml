@@ -75,7 +75,8 @@
                         <page string="Tax Authority">
                             <group>
                             <field name="authority_partner_id"  select="1" on_change="on_change_partner_id(authority_partner_id)"/>
-                            <field name="authority_vat_amount" />
+                            <field name="authority_vat_amount"/>
+                            <field name="authority_vat_amount_net"/>
                             <field name="authority_vat_account_id"  select="1" />
                             <field name="residual" />
                             <separator string="Payments" colspan="4"/>
@@ -102,7 +103,8 @@
                 <tree string="Vat statement">
                     <field name="date" />
                     <field name="journal_id" />
-                    <field name="authority_vat_amount"   />
+                    <field name="authority_vat_amount"/>
+                    <field name="authority_vat_amount_net"/>
                     <field name="state" />
                </tree>
             </field>
