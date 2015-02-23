@@ -28,6 +28,10 @@ import math
 import openerp.addons.decimal_precision as dp
 from datetime import datetime
 from dateutil.relativedelta import relativedelta
+import logging
+
+
+_logger = logging.getLogger(__name__)
 
 
 class account_vat_period_end_statement(orm.Model):
@@ -441,8 +445,14 @@ class account_vat_period_end_statement(orm.Model):
                 'period_id': period_ids[0],
                 }
             # adding line for interest in quarterly VAT
+            _logger.info('Write Interest MOVE!!')
+            _logger.info("quarterly_vat: %s" %(quarterly_vat))
+            _logger.info("Period: %s" %(len(statement.period_ids)))
+            _logger.info("Amount: %s" %(statement.authority_vat_amount))
+
             if (quarterly_vat and len(statement.period_ids) != 3) and \
                             statement.authority_vat_amount > 0.0:
+
                 if not statement.interest_account_id:
                     raise orm.except_orm(
                         _('Error'),
