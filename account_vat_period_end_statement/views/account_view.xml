@@ -78,6 +78,7 @@
                             <field name="authority_vat_amount"/>
                             <field name="authority_vat_amount_net"/>
                             <field name="authority_vat_account_id"  select="1" />
+                            <field name="interest_account_id"/>
                             <field name="residual" />
                             <separator string="Payments" colspan="4"/>
                             <field name="payment_ids" nolabel="1" colspan="4"/>

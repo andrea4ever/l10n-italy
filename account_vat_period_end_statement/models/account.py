@@ -230,6 +230,12 @@ class account_vat_period_end_statement(orm.Model):
 
         'authority_partner_id': fields.many2one('res.partner', 'Tax Authority Partner', states={'confirmed': [('readonly', True)], 'paid': [('readonly', True)], 'draft': [('readonly', False)]}),
         'authority_vat_account_id': fields.many2one('account.account', 'Tax Authority VAT Account', required=True, states={'confirmed': [('readonly', True)], 'paid': [('readonly', True)], 'draft': [('readonly', False)]}),
+        'interest_account_id': fields.many2one(
+            'account.account', 'Interest Account',
+            states={
+                'confirmed': [('readonly', True)],
+                'paid': [('readonly', True)],
+                'draft': [('readonly', False)]}),
         'authority_vat_amount': fields.function(
             _compute_authority_vat_amount, multi='sums',
             string='Authority VAT Amount'),
@@ -434,6 +440,27 @@ class account_vat_period_end_statement(orm.Model):
                 'date': statement.date,
                 'period_id': period_ids[0],
                 }
+            # adding line for interest in quarterly VAT
+            if (quarterly_vat and len(statement.period_ids) != 3) and \
+                            statement.authority_vat_amount > 0.0:
+                if not statement.interest_account_id:
+                    raise orm.except_orm(
+                        _('Error'),
+                        _("No interest account given!"))
+
+                interest_amount = statement.authority_vat_amount - \
+                                  statement.authority_vat_amount_net,
+                interest_vat_data = {
+                    'name': _('Interest Quarterly VAT'),
+                    'account_id': statement.interest_account_id.id,
+                    'move_id': move_id,
+                    'journal_id': statement.journal_id.id,
+                    'debit':interest_amount,
+                    'date': statement.date,
+                    'period_id': period_ids[0],
+                    }
+                line_obj.create(cr, uid, interest_vat_data, context)
+
             if statement.authority_vat_amount > 0:
                 end_debit_vat_data['debit'] = 0.0
                 end_debit_vat_data['credit'] = math.fabs(statement.authority_vat_amount)
