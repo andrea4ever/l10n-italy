@@ -450,7 +450,7 @@ class account_vat_period_end_statement(orm.Model):
             _logger.info("Period: %s" %(len(statement.period_ids)))
             _logger.info("Amount: %s" %(statement.authority_vat_amount))
 
-            if (quarterly_vat and len(statement.period_ids) != 3) and \
+            if (quarterly_vat and len(statement.period_ids) == 3) and \
                             statement.authority_vat_amount > 0.0:
 
                 if not statement.interest_account_id:
