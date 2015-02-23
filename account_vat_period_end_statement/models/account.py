@@ -504,7 +504,7 @@ class account_vat_period_end_statement(orm.Model):
                         'previous_debit_vat_amount': prev_statement.residual})
                 elif prev_statement.authority_vat_amount < 0:
                     statement.write({
-                        'previous_credit_vat_amount': - prev_statement.authority_vat_amount})
+                        'previous_credit_vat_amount': - prev_statement.authority_vat_amount_net})
 
             credit_line_ids = []
             debit_line_ids = []
