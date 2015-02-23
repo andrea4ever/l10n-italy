@@ -459,7 +459,7 @@ class account_vat_period_end_statement(orm.Model):
                         _("No interest account given!"))
 
                 interest_amount = statement.authority_vat_amount - \
-                                  statement.authority_vat_amount_net,
+                                  statement.authority_vat_amount_net
                 interest_vat_data = {
                     'name': _('Interest Quarterly VAT'),
                     'account_id': statement.interest_account_id.id,
