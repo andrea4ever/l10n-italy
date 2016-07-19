@@ -28,7 +28,9 @@ __author__ = "Borja López Soilán (Pexego)"
 
 from openerp import models, fields, api, _
 from datetime import datetime
-# import netsvc
+from openerp.exceptions import Warning as UserError
+from openerp import netsvc
+
 
 #-------------------------------------------------------------------------------
 # Predeclaration of the FYC object
@@ -401,7 +403,6 @@ class fiscal_year_closing(models.Model):
         # Make sure the lang is defined on the context
         #
         user = self.pool.get('res.users').browse(cr, uid, uid, context)
-        context['lang'] = context.get('lang') or user.lang
 
         for fyc in self.browse(cr, uid, ids, context):
             #
@@ -409,17 +410,17 @@ class fiscal_year_closing(models.Model):
             #
             fyc_ids = self.search(cr, uid, [('name', '=', fyc.name)])
             if len(fyc_ids) > 1:
-                raise osv.except_osv(_('Error'), _('There is already a fiscal year closing with this name.'))
+                raise UserError(_('There is already a fiscal year closing with this name.'))
             
             assert fyc.closing_fiscalyear_id and fyc.closing_fiscalyear_id.id
             fyc_ids = self.search(cr, uid, [('closing_fiscalyear_id', '=', fyc.closing_fiscalyear_id.id)])
             if len(fyc_ids) > 1:
-                raise osv.except_osv(_('Error'), _('There is already a fiscal year closing for the fiscal year to close.'))
+                raise UserError(_('There is already a fiscal year closing for the fiscal year to close.'))
 
             assert fyc.opening_fiscalyear_id and fyc.opening_fiscalyear_id.id
             fyc_ids = self.search(cr, uid, [('opening_fiscalyear_id', '=', fyc.opening_fiscalyear_id.id)])
             if len(fyc_ids) > 1:
-                raise osv.except_osv(_('Error'), _('There is already a fiscal year closing for the fiscal year to open.'))
+                raise UserError(_('There is already a fiscal year closing for the fiscal year to open.'))
 
             #
             # Check whether the default values of the fyc object have to be computed
@@ -514,11 +515,11 @@ class fiscal_year_closing(models.Model):
             # Require the L&P, closing, and opening moves to exist (NL&P is optional)
             #
             if not fyc.loss_and_profit_move_id:
-                raise osv.except_osv(_("Not all the operations have been performed!"), _("The Loss & Profit move is required"))
+                raise UserError(_("The Loss & Profit move is required"))
             if not fyc.closing_move_id:
-                raise osv.except_osv(_("Not all the operations have been performed!"), _("The Closing move is required"))
+                raise UserError(_("The Closing move is required"))
             if not fyc.opening_move_id:
-                raise osv.except_osv(_("Not all the operations have been performed!"), _("The Opening move is required"))
+                raise UserError(_("The Opening move is required"))
 
             ''' needed ?
             
@@ -541,7 +542,7 @@ class fiscal_year_closing(models.Model):
                 # Check if it has been confirmed
                 #
                 if move.state == 'draft':
-                    raise osv.except_osv(_("Some moves are in draft state!"), _("You have to review and confirm each of the moves before continuing"))
+                    raise UserError(_("Some moves are in draft state!"), _("You have to review and confirm each of the moves before continuing"))
                 #
                 # Check the balance
                 #
@@ -549,7 +550,7 @@ class fiscal_year_closing(models.Model):
                 for line in move.line_id:
                     amount += (line.debit - line.credit)
                 if abs(amount) > 0.5 * 10 ** -int(self.pool.get('decimal.precision').precision_get(cr, uid, 'Account')):
-                    raise osv.except_osv(_("Some moves are unbalanced!"), _("All the moves should be balanced before continuing"))
+                    raise (_("Some moves are unbalanced!"), _("All the moves should be balanced before continuing"))
 
                 #
                 # Reconcile the move
@@ -679,7 +680,12 @@ class fiscal_year_closing(models.Model):
         a new workflow instance.
         """
         self.write(cr, uid, ids, {'state': 'new'})
-        # wf_service = netsvc.LocalService("workflow")
-        # for item_id in ids:
-        #     wf_service.trg_create(uid, 'account_fiscal_year_closing.fyc', item_id, cr)
+        wf_service = netsvc.LocalService("workflow")
+        for item_id in ids:
+            wf_service.trg_delete(
+                uid, 'account_fiscal_year_closing.fyc', item_id, cr)
+            wf_service.trg_create(
+                uid, 'account_fiscal_year_closing.fyc', item_id, cr)
+            wf_service.trg_validate(
+                uid, 'account_fiscal_year_closing.fyc', item_id, 'draft', cr)
         return True

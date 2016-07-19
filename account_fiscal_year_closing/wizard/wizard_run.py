@@ -28,6 +28,7 @@ Create FYC entries wizards
 from openerp import models, api, _
 import openerp.addons.decimal_precision as dp
 from openerp.exceptions import Warning as UserError
+from openerp import netsvc
 
 
 class wizard_run(models.TransientModel):
@@ -127,13 +128,13 @@ class wizard_run(models.TransientModel):
         # Set the fyc as done (if not in cancel_mode)
         #
         if not fyc.create_opening and not fyc.create_closing and not not fyc.create_net_loss_and_profit and not fyc.create_loss_and_profit:
-            # wf_service = netsvc.LocalService("workflow")
-            # wf_service.trg_validate(uid, 'account_fiscal_year_closing.fyc', fyc.id, 'cancel', cr)
-            pass
+            wf_service = netsvc.LocalService("workflow")
+            wf_service.trg_validate(
+                uid, 'account_fiscal_year_closing.fyc', fyc.id, 'cancel', cr)
         else:
-            # wf_service = netsvc.LocalService("workflow")
-            # wf_service.trg_validate(uid, 'account_fiscal_year_closing.fyc', fyc.id, 'run', cr)
-            pass
+            wf_service = netsvc.LocalService("workflow")
+            wf_service.trg_validate(
+                uid, 'account_fiscal_year_closing.fyc', fyc.id, 'run', cr)
         return {'type': 'ir.actions.act_window_close'}
 
 
