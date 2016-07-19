@@ -26,16 +26,15 @@ Fiscal Year Closing
 """
 __author__ = "Borja López Soilán (Pexego)"
 
-
-from osv import fields, osv
-from tools.translate import _
+from openerp import models, api, _
+from openerp.osv import fields
 from datetime import datetime
-import netsvc
+# import netsvc
 
 #-------------------------------------------------------------------------------
 # Predeclaration of the FYC object
 #-------------------------------------------------------------------------------
-class fiscal_year_closing_init(osv.osv):
+class fiscal_year_closing_init(models.Model):
     """
     Fiscal Year Closing Wizard
     """
@@ -54,7 +53,7 @@ fiscal_year_closing_init()
 # Account mapping objects (to be used on the fyc configuration)
 #-------------------------------------------------------------------------------
 
-class fiscal_year_closing_lp_account_mapping(osv.osv):
+class fiscal_year_closing_lp_account_mapping(models.Model):
     """
     Loss & Profit Account Mapping
     """
@@ -75,7 +74,7 @@ class fiscal_year_closing_lp_account_mapping(osv.osv):
 fiscal_year_closing_lp_account_mapping()
 
 
-class fiscal_year_closing_nlp_account_mapping(osv.osv):
+class fiscal_year_closing_nlp_account_mapping(models.Model):
     """
     Net Loss & Profit Account Mapping
     """
@@ -96,7 +95,7 @@ class fiscal_year_closing_nlp_account_mapping(osv.osv):
 fiscal_year_closing_nlp_account_mapping()
 
 
-class fiscal_year_closing_c_account_mapping(osv.osv):
+class fiscal_year_closing_c_account_mapping(models.Model):
     """
     Closing Account Mapping
     """
@@ -119,7 +118,7 @@ fiscal_year_closing_c_account_mapping()
 #-------------------------------------------------------------------------------
 # Fiscal Year Closing Wizard
 #-------------------------------------------------------------------------------
-class fiscal_year_closing(osv.osv):
+class fiscal_year_closing(models.Model):
     """
     Fiscal Year Closing Wizard
     """
@@ -695,9 +694,9 @@ class fiscal_year_closing(osv.osv):
         a new workflow instance.
         """
         self.write(cr, uid, ids, {'state': 'new'})
-        wf_service = netsvc.LocalService("workflow")
-        for item_id in ids:
-            wf_service.trg_create(uid, 'account_fiscal_year_closing.fyc', item_id, cr)
+        # wf_service = netsvc.LocalService("workflow")
+        # for item_id in ids:
+        #     wf_service.trg_create(uid, 'account_fiscal_year_closing.fyc', item_id, cr)
         return True
 
 
