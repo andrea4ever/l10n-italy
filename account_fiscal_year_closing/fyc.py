@@ -26,8 +26,7 @@ Fiscal Year Closing
 """
 __author__ = "Borja López Soilán (Pexego)"
 
-from openerp import models, api, _
-from openerp.osv import fields
+from openerp import models, fields, api, _
 from datetime import datetime
 # import netsvc
 
@@ -42,11 +41,8 @@ class fiscal_year_closing_init(models.Model):
     _name = "account_fiscal_year_closing.fyc"
     _description = "Fiscal Year Closing Wizard"
 
-    _columns = {
-        'name': fields.char('Description', size=60, required=True),
-    }
+    name = fields.Char(string='Description', size=60, required=True)
 
-fiscal_year_closing_init()
 
 
 #-------------------------------------------------------------------------------
@@ -61,17 +57,16 @@ class fiscal_year_closing_lp_account_mapping(models.Model):
     _name = "account_fiscal_year_closing.fyc_lp_account_map"
     _description = "SFYC Loss & Profit Account Mapping"
 
-    _columns = {
-        'name': fields.char('Description', size=60, required=False),
-
-        # Parent eoy
-        'fyc_id': fields.many2one('account_fiscal_year_closing.fyc', 'Fiscal Year Closing', ondelete='cascade', required=True, select=1),
-
-        # Accounts
-        'source_account_id':fields.many2one('account.account', 'Source account', required=True, ondelete='cascade'),
-        'dest_account_id':fields.many2one('account.account', 'Dest account', required=False, ondelete='cascade'),
-    }
-fiscal_year_closing_lp_account_mapping()
+    name = fields.Char(sting='Description', size=60)
+    fyc_id = fields.Many2one(
+        'account_fiscal_year_closing.fyc', string='Fiscal Year Closing',
+        ondelete='cascade', required=True, select=1)
+    source_account_id = fields.Many2one(
+        'account.account', string='Source account',
+        required=True, ondelete='cascade')
+    dest_account_id = fields.Many2one(
+        'account.account', string='Dest account',
+        required=False, ondelete='cascade')
 
 
 class fiscal_year_closing_nlp_account_mapping(models.Model):
@@ -82,17 +77,16 @@ class fiscal_year_closing_nlp_account_mapping(models.Model):
     _name = "account_fiscal_year_closing.fyc_nlp_account_map"
     _description = "SFYC Net Loss & Profit Account Mapping"
 
-    _columns = {
-        'name': fields.char('Description', size=60, required=False),
-
-        # Parent eoy
-        'fyc_id': fields.many2one('account_fiscal_year_closing.fyc', 'Fiscal Year Closing', ondelete='cascade', required=True, select=1),
-
-        # Accounts
-        'source_account_id':fields.many2one('account.account', 'Source account', required=True, ondelete='cascade'),
-        'dest_account_id':fields.many2one('account.account', 'Dest account', required=False, ondelete='cascade'),
-    }
-fiscal_year_closing_nlp_account_mapping()
+    name = fields.Char(sting='Description', size=60)
+    fyc_id = fields.Many2one(
+        'account_fiscal_year_closing.fyc', string='Fiscal Year Closing',
+        ondelete='cascade', required=True, select=1)
+    source_account_id = fields.Many2one(
+        'account.account', string='Source account',
+        required=True, ondelete='cascade')
+    dest_account_id = fields.Many2one(
+        'account.account', string='Dest account',
+        required=False, ondelete='cascade')
 
 
 class fiscal_year_closing_c_account_mapping(models.Model):
@@ -103,17 +97,17 @@ class fiscal_year_closing_c_account_mapping(models.Model):
     _name = "account_fiscal_year_closing.fyc_c_account_map"
     _description = "SFYC Closing Account Mapping"
 
-    _columns = {
-        'name': fields.char('Description', size=60, required=False),
+    name = fields.Char(sting='Description', size=60)
+    fyc_id = fields.Many2one(
+        'account_fiscal_year_closing.fyc', string='Fiscal Year Closing',
+        ondelete='cascade', required=True, select=1)
+    source_account_id = fields.Many2one(
+        'account.account', string='Source account',
+        required=True, ondelete='cascade')
+    dest_account_id = fields.Many2one(
+        'account.account', string='Dest account',
+        required=False, ondelete='cascade')
 
-        # Parent eoy
-        'fyc_id': fields.many2one('account_fiscal_year_closing.fyc', 'Fiscal Year Closing', ondelete='cascade', required=True, select=1),
-
-        # Accounts
-        'source_account_id':fields.many2one('account.account', 'Account', required=True, ondelete='cascade'),
-        'dest_account_id':fields.many2one('account.account', 'Dest account', ondelete='cascade'),
-    }
-fiscal_year_closing_c_account_mapping()
 
 #-------------------------------------------------------------------------------
 # Fiscal Year Closing Wizard
@@ -125,138 +119,129 @@ class fiscal_year_closing(models.Model):
 
     _inherit = "account_fiscal_year_closing.fyc"
 
+    # ---- Default values
+
+    def _get_closing_name(self):
+        return _('{year} Fiscal Year Closing'.format(
+            year=datetime.now().year - 1))
+
+    def _get_closing_fiscalyear_id(self):
+        """
+        Gets the last (previous) fiscal year
+        """
+        company = self.env.user.company_id
+        str_date = '%s-06-01' % (datetime.now().year - 1)
+        fiscalyear = self.env['account.fiscalyear'].search(
+            [('company_id', '=', company.id),
+             ('date_start', '<=', str_date),
+             ('date_stop', '>=', str_date)])
+        if not fiscalyear:
+            fiscalyear = self.env['account.fiscalyear'].search(
+                [('company_id', '=', False),
+                 ('date_start', '<=', str_date),
+                 ('date_stop', '>=', str_date)])
+        return fiscalyear and fiscalyear[0].id
+
+    def _get_opening_fiscalyear_id(self):
+        """
+        Gets the current fiscal year
+        """
+        company = self.env.user.company_id
+        str_date = '%s-06-01' % datetime.now().year
+        fiscalyear = self.env['account.fiscalyear'].search(
+            [('company_id', '=', company.id),
+             ('date_start', '<=', str_date),
+             ('date_stop', '>=', str_date)])
+        if not fiscalyear:
+            fiscalyear = self.env['account.fiscalyear'].search(
+                [('company_id', '=', False),
+                 ('date_start', '<=', str_date),
+                 ('date_stop', '>=', str_date)])
+        return fiscalyear and fiscalyear[0].id
+
     #
     # Fields -------------------------------------------------------------------
     #
 
-    _columns = {
-        # Company
-        'company_id': fields.many2one('res.company', 'Company', ondelete='cascade', readonly=True, required=True),
-
-        # Fiscal years
-        'closing_fiscalyear_id':fields.many2one('account.fiscalyear', 'Fiscal year to close', required=True, ondelete='cascade', select=1),
-        'opening_fiscalyear_id':fields.many2one('account.fiscalyear', 'Fiscal year to open', required=True, ondelete='cascade', select=2),
-
-        #
-        # Operations (to do), and their account moves (when done)
-        #
-        'create_loss_and_profit': fields.boolean('Create Loss & Profit move'),
-        'loss_and_profit_move_id': fields.many2one('account.move', 'L&P Move', ondelete='set null', readonly=True),
-        'create_net_loss_and_profit': fields.boolean('Create Net Loss & Profit'),
-        'net_loss_and_profit_move_id': fields.many2one('account.move', 'Net L&P Move', ondelete='set null', readonly=True),
-        'create_closing': fields.boolean('Close fiscal year'),
-        'closing_move_id': fields.many2one('account.move', 'Closing Move', ondelete='set null', readonly=True),
-        'create_opening': fields.boolean('Open next fiscal year'),
-        'opening_move_id': fields.many2one('account.move', 'Opening Move', ondelete='set null', readonly=True),
-
-        #
-        # Extra operations
-        #
-        'check_invalid_period_moves': fields.boolean('Check invalid period or date moves', help="Checks that there are no moves, on the fiscal year that is being closed, with dates or periods outside that fiscal year."),
-        'check_draft_moves': fields.boolean('Check draft moves', help="Checks that there are no draft moves on the fiscal year that is being closed. Non-confirmed moves won't be taken in account on the closing operations."),
-        'check_unbalanced_moves': fields.boolean('Check unbalanced moves', help="Checks that there are no unbalanced moves on the fiscal year that is being closed."),
-
-        # State
-        'state': fields.selection([
-                ('new', 'New'),
-                ('draft', 'Draft'),
-                ('in_progress', 'In Progress'),
-                ('done', 'Done'),
-                ('canceled', 'Canceled'),
-            ], 'Status'),
-
-        #
-        # Loss and Profit options
-        #
-        'lp_description': fields.char('Description', size=60),
-        'lp_journal_id': fields.many2one('account.journal', 'Journal'),
-        'lp_period_id': fields.many2one('account.period', 'Period'),
-        'lp_date': fields.date('Date'),
-        'lp_account_mapping_ids': fields.one2many('account_fiscal_year_closing.fyc_lp_account_map', 'fyc_id', 'Account mappings'),
-
-        #
-        # Net Loss and Profit options
-        #
-        'nlp_description': fields.char('Description', size=60),
-        'nlp_journal_id': fields.many2one('account.journal', 'Journal'),
-        'nlp_period_id': fields.many2one('account.period', 'Period'),
-        'nlp_date': fields.date('Date'),
-        'nlp_account_mapping_ids': fields.one2many('account_fiscal_year_closing.fyc_nlp_account_map', 'fyc_id', 'Account mappings'),
-
-        #
-        # Closing options
-        #
-        'c_description': fields.char('Description', size=60),
-        'c_journal_id': fields.many2one('account.journal', 'Journal'),
-        'c_period_id': fields.many2one('account.period', 'Period'),
-        'c_date': fields.date('Date'),
-        'c_account_mapping_ids': fields.one2many('account_fiscal_year_closing.fyc_c_account_map', 'fyc_id', 'Accounts'),
-
-        #
-        # Opening options
-        #
-        'o_description': fields.char('Description', size=60),
-        'o_journal_id': fields.many2one('account.journal', 'Journal'),
-        'o_period_id': fields.many2one('account.period', 'Period'),
-        'o_date': fields.date('Date'),
-    }
-
-    #
-    # Default values -----------------------------------------------------------
-    #
-
-    def _get_closing_fiscalyear_id(self, cr, uid, context):
-        """
-        Gets the last (previous) fiscal year
-        """
-        company = self.pool.get('res.users').browse(cr, uid, uid, context).company_id
-        str_date = '%s-06-01' % (datetime.now().year - 1)
-        fiscalyear_ids = self.pool.get('account.fiscalyear').search(cr, uid, [
-                            ('company_id', '=', company.id),
-                            ('date_start', '<=', str_date),
-                            ('date_stop', '>=', str_date),
-                        ])
-        if not fiscalyear_ids:
-            fiscalyear_ids = self.pool.get('account.fiscalyear').search(cr, uid, [
-                    ('company_id', '=', False),
-                    ('date_start', '<=', str_date),
-                    ('date_stop', '>=', str_date),
-                ])
-        return fiscalyear_ids and fiscalyear_ids[0]
-
-    def _get_opening_fiscalyear_id(self, cr, uid, context):
-        """
-        Gets the current fiscal year
-        """
-        company = self.pool.get('res.users').browse(cr, uid, uid, context).company_id
-        str_date = '%s-06-01' % datetime.now().year
-        fiscalyear_ids = self.pool.get('account.fiscalyear').search(cr, uid, [
-                            ('company_id', '=', company.id),
-                            ('date_start', '<=', str_date),
-                            ('date_stop', '>=', str_date),
-                        ])
-        if not fiscalyear_ids:
-            fiscalyear_ids = self.pool.get('account.fiscalyear').search(cr, uid, [
-                    ('company_id', '=', False),
-                    ('date_start', '<=', str_date),
-                    ('date_stop', '>=', str_date),
-                ])
-        return fiscalyear_ids and fiscalyear_ids[0]
-    
-    _defaults = {
-        # Current company by default:
-        'company_id': lambda self, cr, uid, context: self.pool.get('res.users').browse(cr, uid, uid, context).company_id.id,
-
-        # Draft state by default:
-        'state': lambda *a: 'new',
-
-        # Name
-        'name': lambda self, cr, uid, context: _("%s Fiscal Year Closing") % (datetime.now().year - 1),
-
-        # Fiscal years
-        'closing_fiscalyear_id': _get_closing_fiscalyear_id,
-        'opening_fiscalyear_id': _get_opening_fiscalyear_id,
-    }
+    name = fields.Char(default=_get_closing_name)
+    # Company
+    company_id = fields.Many2one(
+        'res.company', 'Company', ondelete='cascade',
+        readonly=True, required=True,
+        default=lambda self: self.env['res.company']._company_default_get(
+            'account_fiscal_year_closing.fyc'))
+    # Fiscal years
+    closing_fiscalyear_id = fields.Many2one(
+        'account.fiscalyear', string='Fiscal year to close',
+        required=True, ondelete='cascade', select=1,
+        default=_get_closing_fiscalyear_id)
+    opening_fiscalyear_id = fields.Many2one(
+        'account.fiscalyear', string='Fiscal year to open',
+        required=True, ondelete='cascade', select=2,
+        default=_get_opening_fiscalyear_id)
+    # Operations (to do), and their account moves (when done)
+    create_loss_and_profit = fields.Boolean()
+    loss_and_profit_move_id = fields.Many2one(
+        'account.move', string='L&P Move', ondelete='set null', readonly=True)
+    create_net_loss_and_profit = fields.Boolean()
+    net_loss_and_profit_move_id = fields.Many2one(
+        'account.move', string='Net L&P Move', 
+        ondelete='set null', readonly=True)
+    create_closing = fields.Boolean()
+    closing_move_id = fields.Many2one(
+        'account.move', string='Closing Move', 
+        ondelete='set null', readonly=True)
+    create_opening = fields.Boolean()
+    opening_move_id = fields.Many2one(
+        'account.move', string='Opening Move',
+        ondelete='set null', readonly=True)
+    # Extra operations
+    check_invalid_period_moves = fields.Boolean(
+        help="Checks that there are no moves, "
+             "on the fiscal year that is being closed, "
+             "with dates or periods outside that fiscal year.")
+    check_draft_moves = fields.Boolean(
+        help="Checks that there are no draft moves on the fiscal year "
+             "that is being closed. Non-confirmed moves won't be "
+             "taken in account on the closing operations.")
+    check_unbalanced_moves = fields.Boolean(
+        help="Checks that there are no unbalanced moves "
+             "on the fiscal year that is being closed.")
+    # State
+    state = fields.Selection([
+        ('new', 'New'),
+        ('draft', 'Draft'),
+        ('in_progress', 'In Progress'),
+        ('done', 'Done'),
+        ('canceled', 'Canceled')], default='new')
+    # Loss and Profit options
+    lp_description = fields.Char(size=60)
+    lp_journal_id = fields.Many2one('account.journal')
+    lp_period_id = fields.Many2one('account.period')
+    lp_date = fields.Date()
+    lp_account_mapping_ids = fields.One2many(
+        'account_fiscal_year_closing.fyc_lp_account_map', 'fyc_id')
+    # Net Loss and Profit options
+    nlp_description = fields.Char(size=60)
+    nlp_journal_id = fields.Many2one('account.journal')
+    nlp_period_id = fields.Many2one('account.period')
+    nlp_date = fields.Date('Date')
+    nlp_account_mapping_ids = fields.One2many(
+        'account_fiscal_year_closing.fyc_nlp_account_map', 'fyc_id')
+    # Closing options
+    c_description = fields.Char(size=60)
+    c_journal_id = fields.Many2one('account.journal')
+    c_period_id = fields.Many2one('account.period')
+    c_date = fields.Date('Date')
+    c_account_mapping_ids = fields.One2many(
+        'account_fiscal_year_closing.fyc_nlp_account_map', 'fyc_id')
+    # Opening options
+    o_description = fields.Char(size=60)
+    o_journal_id = fields.Many2one('account.journal')
+    o_period_id = fields.Many2one('account.period')
+    o_date = fields.Date('Date')
+    o_account_mapping_ids = fields.One2many(
+        'account_fiscal_year_closing.fyc_nlp_account_map', 'fyc_id')
 
     #
     # Workflow actions ---------------------------------------------------------
@@ -698,12 +683,3 @@ class fiscal_year_closing(models.Model):
         # for item_id in ids:
         #     wf_service.trg_create(uid, 'account_fiscal_year_closing.fyc', item_id, cr)
         return True
-
-
-fiscal_year_closing()
-
-
-
-
-
-
