@@ -26,10 +26,8 @@ Create FYC entries wizards
 """
 
 from openerp import models, api, _
-from openerp.osv import fields
-# import netsvc
 import openerp.addons.decimal_precision as dp
-# from osv import fields, osv
+from openerp.exceptions import Warning as UserError
 
 
 class wizard_run(models.TransientModel):
@@ -47,7 +45,7 @@ class wizard_run(models.TransientModel):
         pool = self.pool
         active_id = context and context.get('active_id', False) or False
         if not active_id:
-            raise osv.except_osv(_('Error'), _('No active ID found'))
+            raise UserError(_('No active ID found'))
         # Read the object
         fyc = pool.get('account_fiscal_year_closing.fyc').browse(cr, uid, active_id, context=context)
 
@@ -178,7 +176,7 @@ class wizard_run(models.TransientModel):
         if len(account_move_ids):
             invalid_period_moves = pool.get('account.move').browse(cr, uid, account_move_ids, context)
             str_invalid_period_moves = '\n'.join(['id: %s, date: %s, number: %s, ref: %s' % (move.id, move.date, move.name, move.ref) for move in invalid_period_moves])
-            raise osv.except_osv(_('Error'), _('One or more moves with invalid period or date found on the fiscal year: \n%s') % str_invalid_period_moves)
+            raise UserError(_('One or more moves with invalid period or date found on the fiscal year: \n%s') % str_invalid_period_moves)
 
 
     def _check_draft_moves(self, cr, uid, fyc, context):
@@ -210,7 +208,7 @@ class wizard_run(models.TransientModel):
         if len(account_move_ids):
             draft_moves = pool.get('account.move').browse(cr, uid, account_move_ids, context)
             str_draft_moves = '\n'.join(['id: %s, date: %s, number: %s, ref: %s' % (move.id, move.date, move.name, move.ref) for move in draft_moves])
-            raise osv.except_osv(_('Error'), _('One or more draft moves found: \n%s') % str_draft_moves)
+            raise UserError(_('One or more draft moves found: \n%s') % str_draft_moves)
 
     def _check_unbalanced_moves(self, cr, uid, fyc, context):
         """
@@ -253,7 +251,7 @@ class wizard_run(models.TransientModel):
         #
         if len(unbalanced_moves):
             str_unbalanced_moves = '\n'.join(['id: %s, date: %s, number: %s, ref: %s' % (move.id, move.date, move.name, move.ref) for move in unbalanced_moves])
-            raise osv.except_osv(_('Error'), _('One or more unbalanced moves found: \n%s') % str_unbalanced_moves)
+            raise UserError(_('One or more unbalanced moves found: \n%s') % str_unbalanced_moves)
 
 
     ############################################################################
@@ -300,19 +298,19 @@ class wizard_run(models.TransientModel):
             account_mapping_ids = fyc.lp_account_mapping_ids
             for account_map in account_mapping_ids:
                 if not account_map.dest_account_id:
-                    raise osv.except_osv(_('UserError'), _("The L&P account mappings are not properly configured: %s") % account_map.name)
+                    raise UserError(_("The L&P account mappings are not properly configured: %s") % account_map.name)
 
             #
             # Get the values for the lines
             #
             if not fyc.lp_description:
-                raise osv.except_osv(_('UserError'), _("The L&P description must be defined"))
+                raise UserError(_("The L&P description must be defined"))
             if not fyc.lp_date:
-                raise osv.except_osv(_('UserError'), _("The L&P date must be defined"))
+                raise UserError(_("The L&P date must be defined"))
             if not (fyc.lp_period_id and fyc.lp_period_id.id):
-                raise osv.except_osv(_('UserError'), _("The L&P period must be defined"))
+                raise UserError(_("The L&P period must be defined"))
             if not (fyc.lp_journal_id and fyc.lp_journal_id.id):
-                raise osv.except_osv(_('UserError'), _("The L&P journal must be defined"))
+                raise UserError(_("The L&P journal must be defined"))
             description = fyc.lp_description
             date = fyc.lp_date
             period_id = fyc.lp_period_id.id
@@ -335,19 +333,19 @@ class wizard_run(models.TransientModel):
             '''
             for account_map in account_mapping_ids:
                 if not account_map.dest_account_id:
-                    raise osv.except_osv(_('UserError'), _("The Net L&P account mappings are not properly configured: %s") % account_map.name)
+                    raise UserError(_("The Net L&P account mappings are not properly configured: %s") % account_map.name)
             '''
             #
             # Get the values for the lines
             #
             if not fyc.nlp_description:
-                raise osv.except_osv(_('UserError'), _("The Net L&P description must be defined"))
+                raise UserError(_("The Net L&P description must be defined"))
             if not fyc.nlp_date:
-                raise osv.except_osv(_('UserError'), _("The Net L&P date must be defined"))
+                raise UserError(_("The Net L&P date must be defined"))
             if not (fyc.nlp_period_id and fyc.nlp_period_id.id):
-                raise osv.except_osv(_('UserError'), _("The Net L&P period must be defined"))
+                raise UserError(_("The Net L&P period must be defined"))
             if not (fyc.nlp_journal_id and fyc.nlp_journal_id.id):
-                raise osv.except_osv(_('UserError'), _("The Net L&P journal must be defined"))
+                raise UserError(_("The Net L&P journal must be defined"))
             description = fyc.nlp_description
             date = fyc.nlp_date
             period_id = fyc.nlp_period_id.id
@@ -355,7 +353,7 @@ class wizard_run(models.TransientModel):
         elif operation == 'close':
             # Require the user to have performed the L&P operation
             if not (fyc.loss_and_profit_move_id and fyc.loss_and_profit_move_id.id):
-                raise osv.except_osv(_('UserError'), _("The L&P move must exist before creating the closing one"))
+                raise UserError(_("The L&P move must exist before creating the closing one"))
             '''
             #
             # Consider all the periods of the fiscal year *BUT* the Closing one.
@@ -370,13 +368,13 @@ class wizard_run(models.TransientModel):
             # Get the values for the lines
             #
             if not fyc.c_description:
-                raise osv.except_osv(_('UserError'), _("The closing description must be defined"))
+                raise UserError(_("The closing description must be defined"))
             if not fyc.c_date:
-                raise osv.except_osv(_('UserError'), _("The closing date must be defined"))
+                raise UserError(_("The closing date must be defined"))
             if not (fyc.c_period_id and fyc.c_period_id.id):
-                raise osv.except_osv(_('UserError'), _("The closing period must be defined"))
+                raise UserError(_("The closing period must be defined"))
             if not (fyc.c_journal_id and fyc.c_journal_id.id):
-                raise osv.except_osv(_('UserError'), _("The closing journal must be defined"))
+                raise UserError(_("The closing journal must be defined"))
             description = fyc.c_description
             date = fyc.c_date
             period_id = fyc.c_period_id.id
@@ -498,20 +496,20 @@ class wizard_run(models.TransientModel):
             closing_move = fyc.closing_move_id
             # Require the user to have performed the closing operation
             if not (closing_move and closing_move.id):
-                raise osv.except_osv(_('UserError'), _("The closing move must exist to create the opening one"))
+                raise UserError(_("The closing move must exist to create the opening one"))
             if not closing_move.line_id:
-                raise osv.except_osv(_('UserError'), _("The closing move shouldn't be empty"))
+                raise UserError(_("The closing move shouldn't be empty"))
             #
             # Get the values for the lines
             #
             if not fyc.o_description:
-                raise osv.except_osv(_('UserError'), _("The opening description must be defined"))
+                raise UserError(_("The opening description must be defined"))
             if not fyc.o_date:
-                raise osv.except_osv(_('UserError'), _("The opening date must be defined"))
+                raise UserError(_("The opening date must be defined"))
             if not (fyc.o_period_id and fyc.o_period_id.id):
-                raise osv.except_osv(_('UserError'), _("The opening period must be defined"))
+                raise UserError(_("The opening period must be defined"))
             if not (fyc.o_journal_id and fyc.o_journal_id.id):
-                raise osv.except_osv(_('UserError'), _("The opening journal must be defined"))
+                raise UserError(_("The opening journal must be defined"))
             description = fyc.o_description
             date = fyc.o_date
             period_id = fyc.o_period_id.id
