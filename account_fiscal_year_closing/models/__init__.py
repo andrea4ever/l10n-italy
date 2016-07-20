@@ -10,5 +10,8 @@
 # Copyright 2016 Apulia Software srl (<http://www.apuliasoftware.it>)
 # License AGPL-3.0 or later (http://www.gnu.org/licenses/agpl).
 
-from . import models
-from . import wizard
+"""
+Fiscal Year Closing
+"""
+
+from . import fyc
