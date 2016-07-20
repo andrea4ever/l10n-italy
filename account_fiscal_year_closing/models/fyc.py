@@ -224,14 +224,12 @@ class FiscalYearClosing(models.Model):
     c_period_id = fields.Many2one('account.period')
     c_date = fields.Date('Date')
     c_account_mapping_ids = fields.One2many(
-        'account_fiscal_year_closing.fyc_nlp_account_map', 'fyc_id')
+        'account_fiscal_year_closing.fyc_c_account_map', 'fyc_id')
     # Opening options
     o_description = fields.Char(size=60)
     o_journal_id = fields.Many2one('account.journal')
     o_period_id = fields.Many2one('account.period')
     o_date = fields.Date('Date')
-    o_account_mapping_ids = fields.One2many(
-        'account_fiscal_year_closing.fyc_nlp_account_map', 'fyc_id')
 
     #
     # Workflow actions --------------------------------------------------------

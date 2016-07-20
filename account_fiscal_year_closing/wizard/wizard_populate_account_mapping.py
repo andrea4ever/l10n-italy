@@ -7,12 +7,12 @@ from openerp import models, fields, api
 
 USER_TYPE = {
     'lp': ('income', 'expense'),
-    'nlp': ('asset', 'liabilty'),
+    'c': ('asset', 'liabilty'),
 }
 
 MODEL_TYPE = {
     'lp': 'account_fiscal_year_closing.fyc_lp_account_map',
-    'nlp': 'account_fiscal_year_closing.fyc_nlp_account_map'
+    'c': 'account_fiscal_year_closing.fyc_c_account_map'
 }
 
 
@@ -22,7 +22,7 @@ class PopulateAccountMapping(models.TransientModel):
 
     mapping_type = fields.Selection(
         [('lp', 'Loss & Profit'),
-         ('nlp', 'Net Loss & Profit'), ('c', 'Closing')], required=True,
+         ('c', 'Closing')], required=True,
         default='lp')
     dest_account_id = fields.Many2one('account.account', required=True)
 
