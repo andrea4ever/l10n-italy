@@ -24,6 +24,7 @@
     "data": [
         "security/ir.model.access.csv",
         "data/fyc_workflow.xml",
+        "views/wizard_populate_mapping.xml",
         "views/wizard_run.xml",
         "views/fyc_view.xml",
         "views/hide_account_wizards.xml",

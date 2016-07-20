@@ -1,25 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!--
-#
-#    OpenERP - Spanish Fiscal Year Closing
-#    Copyright (C) 2009 Pexego Sistemas Informáticos. All Rights Reserved
-#    $Id$
-#
-#    This program is free software: you can redistribute it and/or modify
-#    it under the terms of the GNU General Public License as published by
-#    the Free Software Foundation, either version 3 of the License, or
-#    (at your option) any later version.
-#
-#    This program is distributed in the hope that it will be useful,
-#    but WITHOUT ANY WARRANTY; without even the implied warranty of
-#    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-#    GNU General Public License for more details.
-#
-#    You should have received a copy of the GNU General Public License
-#    along with this program.  If not, see <http://www.gnu.org/licenses/>.
-#
--->
-<!--
 Authors: Borja López Soilán (Pexego) - borja@kami.es
 -->
 <openerp>
@@ -101,6 +81,11 @@ Authors: Borja López Soilán (Pexego) - borja@kami.es
                                 </group>
                             </page>
                             <page string="Configuration" attrs="{'invisible':[('state','=','new')]}">
+                                <button name="%(action_populate_account_mapping)d"
+                                    type="action"
+                                    string="Populate Mapping"
+                                    icon="gtk-execute"
+                                    states="draft,in_progress"/>
                                 <notebook colspan="4">
                                     <page string="Loss and Profit">
                                         <field name="lp_description" colspan="4" attrs="{'readonly':[('state','in',('done','cancel'))]}"/>
@@ -118,6 +103,7 @@ Authors: Borja López Soilán (Pexego) - borja@kami.es
                                                 <field name="name"/>
                                             </form>
                                         </field>
+
                                     </page>
                                     <page string="Net Loss and Profit">
                                         <field name="nlp_description" colspan="4" attrs="{'readonly':[('state','in',('done','cancel'))]}"/>
@@ -144,9 +130,11 @@ Authors: Borja López Soilán (Pexego) - borja@kami.es
                                         <field name="c_account_mapping_ids" colspan="4" nolabel="1" attrs="{'readonly':[('state','in',('done','cancel'))]}">
                                             <tree string="Accounts to close" editable="top">
                                                 <field name="source_account_id"/>
+                                                <field name="dest_account_id"/>
                                             </tree>
                                             <form string="Account to close">
                                                 <field name="source_account_id"/>
+                                                <field name="dest_account_id"/>
                                                 <field name="name"/>
                                             </form>
                                         </field>

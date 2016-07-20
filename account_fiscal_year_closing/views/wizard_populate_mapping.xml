@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="utf-8"?>
+<openerp>
+<data>
+
+    <record model="ir.ui.view" id="wizard_populate_account_mapping">
+        <field name="name">wizard.populate.account.mapping</field>
+        <field name="model">populate.account.mapping</field>
+        <field name="arch" type="xml">
+            <form string="Populate Account Mapping">
+                <group>
+                    <field name="mapping_type" />
+                    <field name="dest_account_id" />
+                </group>
+                <footer>
+                    <button name="populate_mapping" string="Populate"
+                            type="object" class="oe_highlight"/>
+                    o
+                    <button string="Close" class="oe_link" special="cancel"/>
+                </footer>
+            </form>
+        </field>
+    </record>
+
+    <record id="action_populate_account_mapping" model="ir.actions.act_window">
+      <field name="name">Populate Account Mapping</field>
+      <field name="res_model">populate.account.mapping</field>
+      <field name="view_type">form</field>
+      <field name="view_mode">form</field>
+      <field name="view_id" ref="wizard_populate_account_mapping"/>
+      <field name="target">new</field>
+    </record>
+
+</data>
+</openerp>

@@ -14,3 +14,4 @@
 Fiscal Year Closing Wizards
 """
 from . import wizard_run
+from . import wizard_populate_account_mapping
