@@ -10,8 +10,10 @@
             <field name="arch" type="xml">
                 <form string="Fiscal Year Closing">
                     <label string="This wizard will perform the selected operations. It will create account moves for the operations you selected, skipping those already created. Non-selected operations will be canceled." colspan="4"/>
+                <footer>
                     <button string="Cancel" special="cancel" icon="gtk-cancel" colspan="2"/>
                     <button string="Run" name="run" type="object" icon="gtk-ok" colspan="2"/>
+                </footer>
                 </form>
             </field>
         </record>
